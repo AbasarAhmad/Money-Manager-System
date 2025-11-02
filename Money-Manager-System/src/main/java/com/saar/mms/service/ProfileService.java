@@ -15,11 +15,20 @@ import lombok.RequiredArgsConstructor;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
+    private final EmailService emailService;
 
     public ProfileDto registerProfile(ProfileDto profileDto) {
         ProfileEntity newProfile = dtoToEntity(profileDto);
         newProfile.setActivationToken(UUID.randomUUID().toString());
+        
+     // Activation mail
+        String activationLink = "http://localhost:8081/api/activate?token=" + newProfile.getActivationToken();
+        String subject = "Activate your Money Manager account";
+        String body = "Hello " + newProfile.getFullName() + ",\n\n"
+                + "Click the link below to activate your account:\n"
+                + activationLink + "\n\nThank you!\nMoney Manager Team";
 
+        emailService.sendEmail(newProfile.getEmail(), subject, body);
         newProfile = profileRepository.save(newProfile);
         return entityToDto(newProfile);
     }
