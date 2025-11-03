@@ -28,6 +28,7 @@ public class ProfileController {
     
     @GetMapping("/activate")
     public ResponseEntity<String>activateProfile(@RequestParam String token){
+    	System.out.println("===========>>>>>>>>"+token);
     	boolean isActivated=profileService.activateProfile(token);
     	if(isActivated)
     	{

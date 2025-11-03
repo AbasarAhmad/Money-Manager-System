@@ -25,4 +25,5 @@ public class MoneyManagerSystemApplication {
 		SpringApplication.run(MoneyManagerSystemApplication.class, args);
 	}
 
+//	Using generated security password: fed0c464-c49f-43eb-8303-691b52d03baf
 }
