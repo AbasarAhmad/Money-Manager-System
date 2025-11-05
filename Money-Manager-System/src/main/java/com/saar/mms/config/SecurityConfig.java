@@ -4,16 +4,23 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource; // ✅ fixed wrong import
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.saar.mms.security.JwtRequestFilter;
+import com.saar.mms.service.AppUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,54 +28,92 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    //  Main security configuration
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    // Inject custom user details service and JWT filter
+    private final AppUserDetailsService appUserDetailsService;
+    private final JwtRequestFilter jwtRequestFilter;
 
-        httpSecurity
-            // Allow cross-origin requests (for frontend calls)
+    // ==========================
+    // Main Security Configuration
+    // ==========================
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            // Enable CORS for cross-origin requests (frontend access)
             .cors(Customizer.withDefaults())
 
-            // Disable CSRF (not needed for APIs)
+            // Disable CSRF (not needed for REST APIs)
             .csrf(AbstractHttpConfigurer::disable)
 
-            // Define which endpoints are public
+            // Configure public and protected endpoints
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/profile/register", // anyone can register
-                    "/api/profile/activate", // anyone can activate via email
-                    "/status",               // health check
-                    "/health"                // another health check
-                ).permitAll()
-                .anyRequest().authenticated() // everything else requires authentication
+                    "/profile/register",  // registration endpoint (public)
+                    "/profile/activate",  // account activation link
+                    "/profile/login",     // login endpoint (public)
+                    "/status",            // health/status check
+                    "/health"             // health check
+                ).permitAll()             // allow these without authentication
+                .anyRequest().authenticated() // all other requests require JWT
             )
 
-            // No session creation (stateless = better for REST/JWT)
+            // Disable session creation — JWT is stateless
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            );
+            )
 
-        // Return final configuration
-        return httpSecurity.build();
+            // Add JWT filter before Spring Security's built-in auth filter
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+
+            // Use our custom user details service for authentication
+            .userDetailsService(appUserDetailsService);
+
+        // Build and return the configured security filter chain
+        return http.build();
     }
 
-    // Password encoder for encrypting user passwords
+    // ==========================
+    // Password Encoder
+    // ==========================
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // Use BCrypt for password hashing (recommended)
         return new BCryptPasswordEncoder();
     }
 
-    //  CORS configuration (to allow frontend requests)
+    // ==========================
+    // Authentication Manager
+    // ==========================
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        // Provides AuthenticationManager bean used in ProfileService
+        return config.getAuthenticationManager();
+    }
+
+    // ==========================
+    // DAO Authentication Provider
+    // ==========================
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        // This provider tells Spring Security how to authenticate using DB-stored users
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(appUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
+    // ==========================
+    // CORS Configuration
+    // ==========================
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // Define CORS rules (what origins, headers, methods are allowed)
         CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of("*")); // Allow all origins (you can restrict later)
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowCredentials(true); // Allow sending credentials (like JWT tokens)
 
-        configuration.setAllowedOriginPatterns(List.of("*")); // allow all origins
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // allowed methods
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept")); // allowed headers
-        configuration.setAllowCredentials(true); // allow cookies/auth headers
-
-        //  Correct URL mapping pattern for all paths
+        // Apply CORS configuration globally
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
