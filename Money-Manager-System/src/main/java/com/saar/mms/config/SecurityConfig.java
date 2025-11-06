@@ -46,13 +46,14 @@ public class SecurityConfig {
 
             // Configure public and protected endpoints
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/profile/register",  // registration endpoint (public)
-                    "/profile/activate",  // account activation link
-                    "/profile/login",     // login endpoint (public)
-                    "/status",            // health/status check
-                    "/health"             // health check
-                ).permitAll()             // allow these without authentication
+            		.requestMatchers(
+            			    "/profile/register",
+            			    "/profile/activate",
+            			    "/profile/login",
+            			    "/category/**",     // add this line for now
+            			    "/status",
+            			    "/health"
+            			).permitAll()             // allow these without authentication
                 .anyRequest().authenticated() // all other requests require JWT
             )
 

@@ -1,5 +1,7 @@
 package com.saar.mms.service;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -42,6 +44,38 @@ public class CategoryService {
         return entityToDto(newCategory);
     }
 
+    
+    //get categories for current user
+    public List<CategoryDto> getCategoriesForCurrentUser()
+    {
+    	ProfileEntity profile=profileService.getCurrentProfile();
+    	List<CategoryEntity> categories=categoryRepository.findByProfileEntity_Id(profile.getId());
+    	return categories.stream().map(this:: entityToDto).toList();
+    }
+    
+    
+    
+    //Get Categories by type for current user
+    public List<CategoryDto> getCategoriesByTypeForCurrentUser(String type)
+    {
+    	ProfileEntity  profile=profileService.getCurrentProfile();
+    	List<CategoryEntity> entities=categoryRepository.findByTypeAndProfileEntity_Id(type, profile.getId());
+    	return entities.stream().map(this::entityToDto).toList();
+    }
+    
+    
+  public CategoryDto updateCategory(Long categoryId, CategoryDto dto)
+  {
+	  ProfileEntity pf=profileService.getCurrentProfile();
+	  CategoryEntity existingCategory=categoryRepository.findByIdAndProfileEntity_Id(categoryId, pf.getId())
+			  .orElseThrow(()->new RuntimeException("Category not found or not accessible"));
+	  existingCategory.setName(dto.getName());
+	  existingCategory.setIcon(dto.getIcon());
+	  existingCategory=categoryRepository.save(existingCategory);
+	  return entityToDto(existingCategory);
+  }
+    
+    
     // ==========================
     // Helper: Convert DTO to Entity
     // ==========================
