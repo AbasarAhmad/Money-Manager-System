@@ -1,5 +1,8 @@
 package com.saar.mms.service;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.saar.mms.dto.ExpenseDto;
@@ -28,6 +31,36 @@ public class ExpenseService {
 		newExpense= expenseRepository.save(newExpense);
 		return entityToDto(newExpense);
 	}
+	
+	
+	
+	// Retrieves all expenses for the current month/based on the start date and endDate
+	public List<ExpenseDto> getCurrentMonthExpensesForCurrentUser()
+	{
+		ProfileEntity profileEntity=profileService.getCurrentProfile();
+		LocalDate now = LocalDate.now();
+		LocalDate startDate=now.withDayOfMonth(1);
+		LocalDate endDate=now.withDayOfMonth(now.lengthOfMonth());
+		List<ExpenseEntity> list= expenseRepository.findByProfile_IdAndDateBetween(profileEntity.getId(), startDate, endDate);
+		return list.stream().map(this::entityToDto).toList();
+	}
+	
+	
+	
+	// Delete expense by id for current User
+	public void deleteExpense(Long expenseId)
+	{
+		ProfileEntity profileEntity=profileService.getCurrentProfile();
+		ExpenseEntity entity= expenseRepository.findById(expenseId).orElseThrow(()-> new RuntimeException("Expense not found"));
+		if(!entity.getProfile().getId().equals(profileEntity.getId()))
+		{
+			throw new RuntimeException("Unauthorized to delete this expense");
+		}
+		else {
+			expenseRepository.delete(entity);
+		}
+	}
+	
 	
 	
 	

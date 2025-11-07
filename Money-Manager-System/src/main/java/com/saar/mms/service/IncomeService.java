@@ -1,9 +1,15 @@
 package com.saar.mms.service;
 
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
+
+import com.saar.mms.dto.ExpenseDto;
 import com.saar.mms.dto.IncomeDto;
 import com.saar.mms.entity.CategoryEntity;
+import com.saar.mms.entity.ExpenseEntity;
 import com.saar.mms.entity.IncomeEntity;
 import com.saar.mms.entity.ProfileEntity;
 import com.saar.mms.repository.CategoryRepository;
@@ -29,6 +35,35 @@ public class IncomeService {
 		return entityToDto(newExpense);
 	}
 	
+	
+	// Retrieves all Income for the current month/based on the start date and endDate
+		public List<IncomeDto> getCurrentMonthIncomesForCurrentUser()
+		{
+			ProfileEntity profileEntity=profileService.getCurrentProfile();
+			LocalDate now = LocalDate.now();
+			LocalDate startDate=now.withDayOfMonth(1);
+			LocalDate endDate=now.withDayOfMonth(now.lengthOfMonth());
+			List<IncomeEntity> list= incomeRepository.findByProfile_IdAndDateBetween(profileEntity.getId(), startDate, endDate);
+			return list.stream().map(this::entityToDto).toList();
+		}
+	
+	
+	
+		// Delete income  by id for current User
+		public void deleteIncome(Long incomeId)
+		{
+			ProfileEntity profileEntity=profileService.getCurrentProfile();
+			IncomeEntity entity= incomeRepository.findById(incomeId).orElseThrow(()-> new RuntimeException("Income not found"));
+			if(!entity.getProfile().getId().equals(profileEntity.getId()))
+			{
+				throw new RuntimeException("Unauthorized to delete this Income");
+			}
+			else {
+				incomeRepository.delete(entity);
+			}
+		}
+		
+		
 	private IncomeEntity dtoToEntity(IncomeDto dto, ProfileEntity profile, CategoryEntity category)
 	{
 		return IncomeEntity.builder()
