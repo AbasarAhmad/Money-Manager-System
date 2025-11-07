@@ -3,6 +3,8 @@ package com.saar.mms.repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,7 +41,8 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long> {
             Long profileId,
             LocalDate startDate,
             LocalDate endDate,
-            String keyword
+            String keyword,
+            Sort sort
     );
 
     // -----------------------------------------------------------

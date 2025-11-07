@@ -1,8 +1,10 @@
 package com.saar.mms.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.saar.mms.dto.ExpenseDto;
@@ -62,6 +64,36 @@ public class ExpenseService {
 	}
 	
 	
+	// Get latest 5 expenses for current user
+	public List<ExpenseDto> getLast5ExpensesForCurrentUser(){
+		ProfileEntity profileEntity=profileService.getCurrentProfile();
+		List<ExpenseEntity> list=expenseRepository.findTop5ByProfile_IdOrderByDateDesc(profileEntity.getId());
+		return list.stream().map(this:: entityToDto).toList();
+	}
+	
+	// Get total expense for current user
+		public BigDecimal getTotalExpenseForCurrentUser(){
+			ProfileEntity profileEntity=profileService.getCurrentProfile();
+			BigDecimal total= expenseRepository.findTotalExpenseByProfileId(profileEntity.getId());
+			return total != null ? total:BigDecimal.ZERO;
+		}
+		
+		
+		// filter expenses
+		public List<ExpenseDto> filterExpenses(LocalDate startDate, LocalDate endDate, String keyword, Sort sort) {
+
+		    // Get current user's profile
+		    ProfileEntity profileEntity = profileService.getCurrentProfile();
+
+		    // Fetch filtered expenses from repository
+		    List<ExpenseEntity> list = expenseRepository
+		            .findByProfile_IdAndDateBetweenAndNameContainingIgnoreCase(
+		                    profileEntity.getId(), startDate, endDate, keyword, sort);
+
+		    // Convert entities → DTOs and return
+		    return list.stream().map(this::entityToDto).toList();
+		}
+
 	
 	
 	private ExpenseEntity dtoToEntity(ExpenseDto dto, ProfileEntity profile, CategoryEntity category)
