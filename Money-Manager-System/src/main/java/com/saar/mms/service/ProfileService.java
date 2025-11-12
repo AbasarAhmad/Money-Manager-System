@@ -43,7 +43,7 @@ public class ProfileService {
         newProfile.setActivationToken(UUID.randomUUID().toString());
 
         // Activation mail
-        String activationLink = "http://localhost:8080/api/profile/activate?token=" + newProfile.getActivationToken();
+        String activationLink = "http://localhost:8081/api/profile/activate?token=" + newProfile.getActivationToken();
         String subject = "Activate your Money Manager account";
         String body = "Hello " + newProfile.getFullName() + ",\n\n"
                 + "Click the link below to activate your account:\n"
