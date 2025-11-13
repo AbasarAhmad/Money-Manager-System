@@ -4,10 +4,13 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import com.saar.mms.dto.AuthDto;
 import com.saar.mms.dto.ProfileDto;
+import com.saar.mms.entity.ProfileEntity;
+import com.saar.mms.repository.ProfileRepository;
 import com.saar.mms.service.ProfileService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,9 @@ import lombok.RequiredArgsConstructor;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final PasswordEncoder passwordEncoder;
+    private final ProfileRepository profileRepository;
+    
 
     @PostMapping("/register")
     public ResponseEntity<ProfileDto> registerProfile(@RequestBody ProfileDto profileDto) {
@@ -44,30 +50,43 @@ public class ProfileController {
     	}
     }
     
-    @PostMapping("/login") // Handles user login requests
+    @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody AuthDto authDto) {
         try {
-            // Step 1: Check if the user account is active
-        	
-            // If the account is not activated (is_active = false), return 403 Forbidden
-            if (!profileService.isAccountActive(authDto.getEmail())) {
+            // Step 1: Find user by email
+            ProfileEntity profile = profileRepository
+                    .findByEmail(authDto.getEmail().toLowerCase())
+                    .orElse(null);
+
+            if (profile == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Invalid username or password, Please check"));
+            }
+
+            // Step 2: Validate password
+            if (!passwordEncoder.matches(authDto.getPassword(), profile.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Invalid username or password, Please check!"));
+            }
+
+            // Step 3: Check activation
+            if (!profile.getIsActive()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("message", "Account is not active. Please activate your account first."));
             }
 
-            // Step 2: Authenticate the user and generate JWT token
-            // If the email and password are correct, a token and user info will be returned
+            // Step 4: Generate JWT token
             Map<String, Object> response = profileService.authenticateAndGenerateToken(authDto);
 
-            // Step 3: Return 200 OK with token and user details
             return ResponseEntity.ok(response);
-        } 
-        catch (Exception e) {
-            // Step 4: If authentication fails (invalid credentials, etc.), return 400 Bad Request
+
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
         }
     }
+
+
 
     
 }

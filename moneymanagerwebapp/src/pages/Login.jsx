@@ -1,28 +1,65 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { assets } from '../assets/assets';
+import { assets } from "../assets/assets";
+import axiosConfig from "../Util/axiosConfig";
+import { API_ENDPOINTS } from "../Util/apiEndpoints";
+import { AppContext } from "../context/AppContext";
+import { LoaderCircle } from "lucide-react";
+import {validateEmail} from "../Util/validation"
 
-const Signup = () => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-
+  const [isloading, setIsLoading] = useState(false);
+  const { setUser } = useContext(AppContext);
   const navigate = useNavigate();
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!fullName || !email || !password) {
-      setError("All fields are required!");
+    setIsLoading(true);
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
+      setIsLoading(false);
       return;
     }
-    setError(null);
-    console.log({ fullName, email, password });
-    navigate("/login");
+
+    if (!password.trim()) {
+      setError("Please enter your password");
+      setIsLoading(false);
+      return;
+    }
+
+    setError("");
+
+    try {
+
+      const response = await axiosConfig.post(API_ENDPOINTS.LOGIN, {
+        email,
+        password,
+      });
+
+      const { token, user } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        setUser(user);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      if (error.response && error.response.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        console.error("Something went wrong", error);
+        setError("Login failed. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="h-screen w-full relative flex items-center justify-center overflow-hidden">
-      {/* Background image */}
       <img
         src={assets.login_bg}
         alt="Background"
@@ -35,11 +72,10 @@ const Signup = () => {
             Welcome Back
           </h3>
           <p className="text-sm text-slate-700 text-center mb-8">
-            Please enter your details to login in
+            Please enter your details to login
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email input */}
             <div>
               <label className="block text-sm font-medium text-slate-800 mb-1">
                 Email Address
@@ -53,7 +89,6 @@ const Signup = () => {
               />
             </div>
 
-            {/* Password input */}
             <div>
               <label className="block text-sm font-medium text-slate-800 mb-1">
                 Password
@@ -67,22 +102,29 @@ const Signup = () => {
               />
             </div>
 
-            {/* Error message */}
             {error && (
               <p className="text-red-800 text-sm text-center bg-red-50 p-2 rounded">
                 {error}
               </p>
             )}
 
-            {/* Submit button */}
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 text-lg font-medium rounded-lg"
+              disabled={isloading}
+              className={`bg-blue-600 hover:bg-blue-700 text-white w-full py-3 text-lg font-medium rounded-lg flex items-center justify-center gap-2 ${
+                isloading ? "opacity-60 cursor-not-allowed" : ""
+              }`}
               type="submit"
             >
-              LOGIN
+              {isloading ? (
+                <>
+                  <LoaderCircle className="animate-spin w-5 h-5" />
+                  Logging in ...
+                </>
+              ) : (
+                "LOGIN"
+              )}
             </button>
 
-            {/* Navigate to login */}
             <p className="text-sm text-slate-800 text-center mt-6">
               Don't have an account?{" "}
               <span
@@ -99,4 +141,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Login;

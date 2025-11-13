@@ -131,7 +131,8 @@ const Signup = () => {
 
             <button
               disabled={isloading}
-              className={`bg-blue-600 hover:bg-blue-700 text-white w-full py-3 text-lg font-medium rounded-lg flex items-center justify-center gap-2 ${isloading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`bg-blue-600 hover:bg-blue-700 text-white w-full py-3 text-lg font-medium rounded-lg flex items-center justify-center gap-2 
+                ${isloading ? 'opacity-60 cursor-not-allowed' : ''}`}
               type="submit"
             >
               {isloading ? (

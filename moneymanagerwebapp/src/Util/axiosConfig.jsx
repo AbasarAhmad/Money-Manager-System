@@ -1,71 +1,60 @@
 import axios from "axios";
 import { BASE_URL } from "./apiEndpoints";
 
-
-// Create axios instance with base URL and default headers
 const axiosConfig = axios.create({
-  baseURL: BASE_URL, // Backend base URL
+  baseURL: BASE_URL,
   headers: {
-    "Content-Type": "application/json", // Sending data as JSON
-    Accept: "application/json", // Expecting JSON response
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
+  validateStatus: () => true, // IMPORTANT: allow axios to read 401 body
 });
 
-// Endpoints that do not require auth token
+// Endpoints that don't need token
 const excludeEndPoints = ["/login", "/register", "/status", "/activate", "/health"];
 
-// Request interceptor: runs before every request
+// Request Interceptor
 axiosConfig.interceptors.request.use(
   (config) => {
-    // Check if endpoint is excluded
     const shouldSkipToken = excludeEndPoints.some((endpoint) =>
       config.url?.includes(endpoint)
     );
 
-    // If not excluded, attach JWT token to header
     if (!shouldSkipToken) {
-      const accessToken = localStorage.getItem("token");
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
     }
 
-    // Always return config to continue the request
     return config;
   },
-  (error) => {
-    // Handle request error
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor: runs after response or on error
+// Response Interceptor
 axiosConfig.interceptors.response.use(
   (response) => {
-    // Return response if successful (2xx)
+    const originalUrl = response.config.url;
+
+    // LOGIN API – do NOT redirect on 401, return message to UI
+    if (response.status === 401 && originalUrl.includes("/login")) {
+      return Promise.reject({ response });
+
+    }
+
+    // OTHER APIs – redirect on 401
+    if (response.status === 401) {
+      window.location.href = "/login";
+    }
+
+    // Return all other responses normally
     return response;
   },
   (error) => {
-    // Handle different error types
-    if (error.response) {
-      // Unauthorized (token expired or invalid)
-      if (error.response.status === 401) {
-        window.location.href = "/login";
-      }
-      // Server error
-      else if (error.response.status === 500) {
-        console.error("Server error, please try again later");
-      }
-    }
-    // Handle timeout errors
-    else if (error.code === "ECONNABORTED") {
-      console.error("Request timeout. Please try again");
-    }
-
-    // Always reject to allow caller to handle it too
-    return Promise.reject(error);
+    // Handle network errors
+    return Promise.reject(error.response || error);
   }
 );
 
-// Export the configured axios instance
 export default axiosConfig;
