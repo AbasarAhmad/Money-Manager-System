@@ -5,6 +5,10 @@ import Input from "../components/Input";
 import axiosConfig from "../Util/axiosConfig";
 import { API_ENDPOINTS } from "../Util/apiEndpoints";
 import { LoaderCircle } from "lucide-react";
+import ProfilePhotoSelector from "../components/ProfilePhotoSelector";
+import uploadProfileImage from "../Util/uploadProfileImage";
+import { validateEmail } from "../Util/validation";
+import { toast } from "react-toastify";
 
 const Signup = () => {
   const [fullName, setFullName] = useState("");
@@ -12,32 +16,25 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isloading, setIsLoading] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState(null);
 
   const navigate = useNavigate();
-
-  // Email validation helper
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    if (!fullName || !email || !password) {
-      setError("All fields are required!");
-      setIsLoading(false);
-      return;
-    }
 
+    let profileImageUrl = "";
+
+    // Validations
     if (!fullName.trim()) {
-      setError("Please enter your fullname");
+      setError("Please enter your Full Name");
       setIsLoading(false);
       return;
     }
 
     if (!validateEmail(email)) {
-      setError("Please enter a valid email address");
+      setError("Please enter a valid Emaiol address");
       setIsLoading(false);
       return;
     }
@@ -49,28 +46,32 @@ const Signup = () => {
     }
 
     setError("");
-    console.log({ fullName, email, password });
 
-    // Signup Api call
     try {
+      // Upload image if selected
+      if (profilePhoto) {
+        const imageUrl = await uploadProfileImage(profilePhoto);
+        profileImageUrl = imageUrl || "";
+      }
+
+      // Send API Request
       const response = await axiosConfig.post(API_ENDPOINTS.REGISTER, {
         fullName,
-        email,
-        password
-      })
+        email: email.toLowerCase(),
+        password,
+        profileImageUrl,
+      });
+
       if (response.status === 201) {
         toast.success("Profile created successfully");
         navigate("/login");
       }
-    }
-    catch (error) {
-      console.error('Something went wrong', err);
+    } catch (error) {
+      console.error("Something went wrong", error);
       setError(error.message);
-    }
-    finally {
+    } finally {
       setIsLoading(false);
     }
-
   };
 
   return (
@@ -86,16 +87,24 @@ const Signup = () => {
           <h3 className="text-2xl font-semibold text-black text-center mb-2">
             Create an Account
           </h3>
-          <p className="text-sm text-slate-700 text-center mb-8">
-            Start tracking your spendings by joining with us.
-          </p>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+
+              <div className="flex justify-center mb-6 col-span-2">
+                <ProfilePhotoSelector
+                  image={profilePhoto}
+                  setImage={setProfilePhoto}
+                />
+              </div>
+
               <div className="col-span-2">
                 <Input
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(value) => {
+                    setFullName(value);
+                    setError("");
+                  }}
                   label="Full Name"
                   placeholder="Enter full name"
                   type="text"
@@ -105,7 +114,10 @@ const Signup = () => {
               <div className="col-span-2">
                 <Input
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(value) => {
+                    setEmail(value);
+                    setError("");
+                  }}
                   label="Email Address"
                   placeholder="fullname@example.com"
                   type="email"
@@ -115,7 +127,10 @@ const Signup = () => {
               <div className="col-span-2">
                 <Input
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(value) => {
+                    setPassword(value);
+                    setError("");
+                  }}
                   label="Password"
                   placeholder="***************"
                   type="password"
@@ -132,7 +147,7 @@ const Signup = () => {
             <button
               disabled={isloading}
               className={`bg-blue-600 hover:bg-blue-700 text-white w-full py-3 text-lg font-medium rounded-lg flex items-center justify-center gap-2 
-                ${isloading ? 'opacity-60 cursor-not-allowed' : ''}`}
+                ${isloading ? "opacity-60 cursor-not-allowed" : ""}`}
               type="submit"
             >
               {isloading ? (

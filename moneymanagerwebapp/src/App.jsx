@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { Routes, Route } from "react-router-dom";
 import Home from './pages/Home';
 import Income from './pages/Income';
@@ -7,12 +7,14 @@ import Category from './pages/Category';
 import Filter from './pages/Filter';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
   return (
     <>
-      <Toaster />
+      {/* Toastify container */}
+      <ToastContainer position="top-right" autoClose={2000} />
+
       <Routes>
         <Route path='/dashboard' element={<Home/>} />
         <Route path='/income' element={<Income/>} />
@@ -23,7 +25,7 @@ const App = () => {
         <Route path='/signup' element={<Signup/>} />
       </Routes>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;

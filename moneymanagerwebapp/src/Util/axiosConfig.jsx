@@ -7,13 +7,11 @@ const axiosConfig = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  validateStatus: () => true, // IMPORTANT: allow axios to read 401 body
+  validateStatus: () => true,
 });
 
-// Endpoints that don't need token
 const excludeEndPoints = ["/login", "/register", "/status", "/activate", "/health"];
 
-// Request Interceptor
 axiosConfig.interceptors.request.use(
   (config) => {
     const shouldSkipToken = excludeEndPoints.some((endpoint) =>
@@ -32,15 +30,16 @@ axiosConfig.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor
 axiosConfig.interceptors.response.use(
   (response) => {
     const originalUrl = response.config.url;
 
-    // LOGIN API – do NOT redirect on 401, return message to UI
-    if (response.status === 401 && originalUrl.includes("/login")) {
+    // LOGIN API: return ALL errors (401 + 403) to catch block
+    if (
+      originalUrl.includes("/login") &&
+      (response.status === 401 || response.status === 403)
+    ) {
       return Promise.reject({ response });
-
     }
 
     // OTHER APIs – redirect on 401
@@ -48,13 +47,9 @@ axiosConfig.interceptors.response.use(
       window.location.href = "/login";
     }
 
-    // Return all other responses normally
     return response;
   },
-  (error) => {
-    // Handle network errors
-    return Promise.reject(error.response || error);
-  }
+  (error) => Promise.reject(error.response || error)
 );
 
 export default axiosConfig;
