@@ -1,23 +1,36 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, Sidebar } from "lucide-react";
 import logo from "../assets/logo.png";
 
-const Menubar = () => {
+const Menubar = ({activeMenu}) => {
     const [openSideMenu, setOpenSideMenu] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
     const { user, clearUser } = useContext(AppContext);
     const navigate = useNavigate();
 
-    const handelLogout=()=>{
+    const handelLogout = () => {
         clearUser();
         localStorage.clear();
         setShowDropdown(false);
         navigate("/login")
     }
 
+    useEffect(()=>{
+        const handleClickOutSide =(event)=>{
+            if(dropdownRef.current && ! dropdownRef.current.contains(event.target)){
+                setShowDropdown(false);
+            }
+        };
+        if(showDropdown){
+            document.addEventListener("mousedown", handleClickOutSide);
+        }
+        return ()=>{
+            document.removeEventListener("mousedown", handleClickOutSide);
+        }
+    })
     return (
         <div className="flex items-center justify-between bg-white border-b border-gray-200/50 backdrop-blur-sm py-4 px-4 sm:px-7 sticky top-0 z-30">
 
@@ -71,15 +84,22 @@ const Menubar = () => {
 
                         {/* Dropdown options */}
                         <div className="py-1">
-                            <button  onClick={handelLogout}
-                            className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-150">
-                                <LogOut className='w-4 h-4 text-gray-500'/>
+                            <button onClick={handelLogout}
+                                className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-150">
+                                <LogOut className='w-4 h-4 text-gray-500' />
                                 <span>Logout</span>
                             </button>
                         </div>
                     </div>
                 )}
             </div>
+            {/* Mobile side menu */}
+            {openSideMenu && (
+                <div className="fixed left-0 right-0 bg-white border-b border-gray-200 lg:hidden z-30 top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+                    <Sidebar  activeMenu={activeMenu}/>
+                </div>
+            )}
+
         </div>
     );
 };
