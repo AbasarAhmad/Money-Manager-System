@@ -49,6 +49,18 @@ const Category = () => {
     toast.error("Category Name is required");
     return;
    }
+
+   // check if the category already exists
+
+  const isDuplicate = categoryData.some((category) => {
+  return category.name.toLowerCase() === name.trim().toLowerCase();
+});
+
+
+   if(isDuplicate){
+    toast.error("Category Name already exists");
+    return
+   }
    try{
       const response= await axiosConfig.post(API_ENDPOINTS.ADD_CATEGORY,{name,type,icon});
       if(response.status===201)
