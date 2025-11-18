@@ -7,5 +7,6 @@ export const API_ENDPOINTS = {
     LOGIN: "/profile/login",
     REGISTER: "/profile/register",
     GET_USER_INFO: "/profile/current",
+    GET_ALL_CATEGORIES:"/category",
     UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
 };
