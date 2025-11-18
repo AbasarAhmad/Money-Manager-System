@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from './pages/Home';
 import Income from './pages/Income';
 import Expense from './pages/Expense';
@@ -16,6 +16,8 @@ const App = () => {
       <ToastContainer position="top-right" autoClose={2000} />
 
       <Routes>
+        
+        <Route path='/' element={<Root />} />
         <Route path='/dashboard' element={<Home/>} />
         <Route path='/income' element={<Income/>} />
         <Route path='/expense' element={<Expense/>} />
@@ -28,4 +30,13 @@ const App = () => {
   );
 };
 
+const Root=()=>{
+  const isAuthenticated=!!localStorage.getItem("token");
+  return isAuthenticated ? (
+    <Navigate to ="/dashboard" />
+  ):
+  ( 
+    <Navigate to ="/login" />
+  )
+}
 export default App;
