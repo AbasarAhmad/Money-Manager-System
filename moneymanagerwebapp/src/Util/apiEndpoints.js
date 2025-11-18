@@ -6,5 +6,6 @@ const CLOUDINARY_CLOUD_NAME="dxq3rwtvp"
 export const API_ENDPOINTS = {
     LOGIN: "/profile/login",
     REGISTER: "/profile/register",
+    GET_USER_INFO: "/profile/current",
     UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
 };

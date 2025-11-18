@@ -4,6 +4,7 @@ export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  
   const clearUser=()=>{
     setUser(null);
   }
