@@ -76,6 +76,21 @@ const Category = () => {
     }
   }
 
+ const handleEditCategory =(categoryToEdit)=>{
+  setSelectedCategory(categoryToEdit);
+  setOpenEditCategoryModal(true); 
+}
+
+
+
+  const handleUpdateCategory=(updatedCategory)=>{
+    console.log("Update the category", updatedCategory);
+
+
+  }
+
+
+
 
 
   return (
@@ -97,7 +112,7 @@ const Category = () => {
 
 
           {/* Category list */}
-          <CategoryList categories={categoryData} />
+          <CategoryList categories={categoryData} onEditcategory={handleEditCategory} />
 
           {/* Adding category modal */}
           <Modal
@@ -109,6 +124,20 @@ const Category = () => {
           </Modal>
 
           {/* Updating category modal */}
+          <Modal
+            onClose={()=>{
+              setOpenEditCategoryModal(false);
+              setSelectedCategory(null);
+            }}
+            isOpen={openEditCategoryModal}
+            title="Update Category"
+          >
+            <AddCategoryform
+            initialCategoryData={selectedCategory}
+            onAddCategory={handleUpdateCategory}
+            isEditing={true}
+            />
+          </Modal>
         </div>
       </Dashboard>
 

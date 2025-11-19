@@ -1,7 +1,7 @@
 import { Layers2, Pencil } from 'lucide-react'
 import React from 'react'
 
-const CategoryList = ({ categories, onEditcategory, onDeleteCategory }) => {
+const CategoryList = ({ categories, onEditcategory }) => {
   return (
     <div className='p-4 bg-white rounded-lg shadow'>
       
@@ -48,7 +48,9 @@ const CategoryList = ({ categories, onEditcategory, onDeleteCategory }) => {
                 </p>
                 </div>
                  {/* Action buttons */}
-                 <div className="flex items-center gap-2">
+                 <div 
+                  onClick={()=>onEditcategory(category)}
+                 className="flex items-center gap-2">
                     <button className="text-gray-400:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                         <Pencil size={18} />
                     </button>
