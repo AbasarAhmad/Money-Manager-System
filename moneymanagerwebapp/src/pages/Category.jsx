@@ -83,8 +83,29 @@ const Category = () => {
 
 
 
-  const handleUpdateCategory=(updatedCategory)=>{
-    console.log("Update the category", updatedCategory);
+  const handleUpdateCategory= async(updatedCategory)=>{
+    const {id, name,type,icon}=updatedCategory;
+    if(!name.trim()){
+      toast.error("Category Name is required ");
+      return;
+    }
+    if(!id){
+      toast.error("Category ID mussing for update");
+      return;
+    }
+    try{
+      const response= await axiosConfig.put(API_ENDPOINTS.UPDATE_CATEGORY(id),{name,type,icon});
+      console.log("response is ::::"+response);
+      setOpenEditCategoryModal(false);
+      setSelectedCategory(null);
+      toast.success("category updated successfully");
+      fetchCategoryDetails();
+    }
+    catch(error)
+    {
+      console.error('Error updating category: ', error.response?.data?.message || error.message);
+      toast.error(error.response?.data?.message || "Failed to update category .");
+    }
 
 
   }
