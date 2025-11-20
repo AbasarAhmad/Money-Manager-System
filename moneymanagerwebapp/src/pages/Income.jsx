@@ -9,6 +9,7 @@ import Modal from "../components/Modal";
 import { Plus } from "lucide-react";
 import AddIncomeForm from "../components/AddIncomeForm";
 import DeleteAlert from "../components/DeleteAlert";
+import IncomeOverview from "../components/IncomeOverview";
 
 const Income = () => {
   useUser();
@@ -50,7 +51,6 @@ const Income = () => {
       );
 
       if (response.status === 200) {
-        console.log('income categories', response.data);
         setCategories(response.data);
       }
 
@@ -145,6 +145,8 @@ const Income = () => {
               <Plus size={18} />
               Add Income
             </button>
+
+            <IncomeOverview transactions={incomeData}/>
           </div>
 
           <IncomeList
