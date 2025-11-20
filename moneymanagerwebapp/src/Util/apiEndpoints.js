@@ -11,5 +11,6 @@ export const API_ENDPOINTS = {
     ADD_CATEGORY: "/category/add",
     GET_ALL_INCOMES: "/income/get",
     UPDATE_CATEGORY: (categoryId)=>`/category/update/${categoryId}`,
-    UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
+    UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+    CATEGORY_BY_TYPE: (type) => `/category/type/${type}`
 };

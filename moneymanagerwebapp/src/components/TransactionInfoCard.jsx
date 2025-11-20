@@ -13,9 +13,6 @@ const TransactionInfoCard = ({
   onDelete,
 }) => {
 
-  // ✔ move log INSIDE component
-  console.log("RENDER PROPS:", { icon, title, date, amount, type });
-
   const [imgError, setImgError] = useState(false);
 
   const showFallback =

@@ -26,7 +26,6 @@ const Category = () => {
     try {
       const response = await axiosConfig.get(API_ENDPOINTS.GET_ALL_CATEGORIES);
       if (response.status === 200) {
-        console.log('categories', response.data);
         setCategoryData(response.data);
       }
     }
@@ -71,7 +70,6 @@ const Category = () => {
       }
    }
    catch(error){
-    console.log("Error adding category ", error);
     toast.error(error.response?.data?.message || "Failed to add category." );
     }
   }

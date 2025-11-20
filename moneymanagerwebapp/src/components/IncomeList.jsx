@@ -22,7 +22,7 @@ const IncomeList = ({ transactions, onDelete }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2">
         {transactions?.map((income) => {
-          console.log("Mapping Income:", income);
+
 
           return (
             <TransactionInfoCard
