@@ -62,6 +62,52 @@ const Income = () => {
     }
   };
 
+  //Save the categories for income
+  const handleAddIncome= async(income)=>{
+    const {name, amount, date, icon, categoryId}=income;
+
+    //validation
+    if(!name.trim()){
+      toast.error("Please enter a name");
+    }
+    if(!amount || isNaN(amount)|| Number(amount)<= 0){
+      toast.error("Amount should be a valid number greater than 0");
+      return;
+    }
+    if(!date){
+      toast.error("Please select a date");
+      return;
+    }
+    const today=new Date().toISOString().split('T')[0];
+    if(date>today){
+      toast.error('Date cannot be in the future');
+      return;
+    }
+    if(!categoryId){
+      toast.error("Please select a category ");
+      return;
+    }
+    try{
+      const response= await axiosConfig.post(API_ENDPOINTS.ADD_INCOME,{
+        name,
+        amount: Number(amount),
+        date,
+        icon,
+        categoryId,
+      })
+      if(response.status===201){
+        setOpenAddIncomeModal(false);
+        toast.success("Income added successfully");
+        fetchIncomeDetails();
+        fetchIncomeCategories();
+      }
+    }
+    catch(error){
+      console.log('Error adding income,', error);
+      toast.error(error.response?.data?.message || "Failed to adding income")
+    }
+  }
+
   useEffect(() => {
     fetchIncomeDetails();
     fetchIncomeCategories();
@@ -93,7 +139,7 @@ const Income = () => {
             title="Add Income"
           >
             <AddIncomeForm 
-            onAddIncome={(income)=>console.log('Add Income', income)}
+            onAddIncome={(income)=> handleAddIncome(income)}
             categories={categories}
             />
           </Modal>

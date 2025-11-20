@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import EmojiPickerPopup from './EmojiPickerPopup';
 import Input from './Input';
+import { LoaderCircle } from 'lucide-react';
 
 const AddIncomeForm = ({ onAddIncome, categories }) => {
 
@@ -12,6 +13,8 @@ const AddIncomeForm = ({ onAddIncome, categories }) => {
         categoryId: ''
     });
 
+    const [loading, setLoading]=useState(false);
+
     // Convert categories to dropdown format
     const categoryOptions = categories.map((category) => ({
         value: category.id,
@@ -21,6 +24,27 @@ const AddIncomeForm = ({ onAddIncome, categories }) => {
     const handleChange = (key, value) => {
         setIncome({ ...income, [key]: value });
     };
+
+
+    const handleAddIncome= async(key,value) =>{
+        setLoading(true);
+        try{
+await onAddIncome(income)
+        }
+        finally{
+            setLoading(false);
+        }
+    }
+
+useEffect (()=>{
+    if(categories.length>0 && !income.categoryId){
+        setIncome((prev)=>({...prev, categoryId: categories[0].id}))
+    }
+},[categories,income.categoryId])
+
+
+
+
 
     return (
         <div>
@@ -59,10 +83,21 @@ const AddIncomeForm = ({ onAddIncome, categories }) => {
             />
             <div className="flex justify-end mt-6">
                 <button
-                    onClick={() => onAddIncome(income)}
+                    onClick={handleAddIncome}
+                    disabled={loading}
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition"
                 >
-                    Add Income
+                {
+                    loading?(
+                        <>
+                        <LoaderCircle className='w-4 h-4 animate-spin' />
+                        Adding...</>
+                    ):(
+                        <>
+                        Add Income
+                        </>
+                    )
+                }
                 </button>
 
             </div>
