@@ -23,4 +23,5 @@ public class ExpenseDto {
 	private LocalDate date;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
+	private String type = "income";
 }

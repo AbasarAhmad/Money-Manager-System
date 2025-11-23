@@ -1,7 +1,6 @@
-console.log("TransactionInfoCard LOADED");
 import { UtensilsCrossed, Trash2, TrendingUp, TrendingDown } from "lucide-react";
 import React, { useState } from "react";
-import {addThousandsSeparator} from '../Util/util'
+import { addThousandsSeparator } from '../Util/util';
 
 const TransactionInfoCard = ({
   icon,
@@ -21,6 +20,7 @@ const TransactionInfoCard = ({
     typeof icon !== "string" ||
     icon.trim() === "";
 
+  // ❇ Dynamic styling based on type
   const getAmountStyle = () =>
     type === "income"
       ? "bg-green-50 text-green-800"
@@ -29,7 +29,7 @@ const TransactionInfoCard = ({
   return (
     <div className="group relative flex items-center gap-4 mt-2 p-3 rounded-lg hover:bg-gray-100/60 shadow-sm">
 
-      {/* Icon */}
+      {/* ICON */}
       <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full">
         {showFallback ? (
           <UtensilsCrossed className="text-purple-900 w-6 h-6" />
@@ -43,18 +43,26 @@ const TransactionInfoCard = ({
         )}
       </div>
 
-      {/* Text */}
+      {/* TITLE + DATE */}
       <div className="flex flex-col">
         <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
         <p className="text-xs text-gray-500">{date}</p>
       </div>
 
-      {/* Amount */}
-      <div className={`ml-auto px-3 py-1 rounded-full text-sm font-semibold ${getAmountStyle()}`}>
-        ₹{amount}
+      {/* AMOUNT BOX (ONLY ONCE) */}
+      <div className={`ml-auto px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2 ${getAmountStyle()}`}>
+        <span>
+          {type === "income" ? "+" : "-"}₹{addThousandsSeparator(amount)}
+        </span>
+
+        {type === "income" ? (
+          <TrendingUp size={15} />
+        ) : (
+          <TrendingDown size={15} />
+        )}
       </div>
 
-      {/* Delete */}
+      {/* DELETE BUTTON */}
       {!hideDeleteBtn && (
         <button
           onClick={onDelete}
@@ -64,21 +72,6 @@ const TransactionInfoCard = ({
         </button>
       )}
 
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${getAmountStyle()}`}>
-        <h6 className="text-xm font-medium">
-          {
-            type==='income'? '+':'-'
-          }
-          ${addThousandsSeparator (amount)}
-        </h6>
-        {
-          type==='income'?(
-            <TrendingUp size={15 } />
-          ):(
-            <TrendingDown size={15} />
-          )
-        }
-      </div>
     </div>
   );
 };

@@ -128,6 +128,7 @@ public class ExpenseService {
 				.date(entity.getDate())
 				.createdAt(entity.getCreatedAt())
 				.updatedAt(entity.getUpdatedAt())
+				.type("expense")
 				.build();
 	}
 }
