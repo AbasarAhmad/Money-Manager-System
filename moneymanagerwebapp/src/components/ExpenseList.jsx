@@ -1,22 +1,51 @@
-import { Download, Mail } from "lucide-react";
-import React from "react";
+import { Download, LoaderCircle, Mail } from "lucide-react";
 import moment from "moment";
 import TransactionInfoCard from "../components/TransactionInfoCard";
 
-const ExpenseList = ({ transactions, onDelete }) => {
+const ExpenseList = ({ transactions, onDelete, onDownload, onEmail, loading }) => {
   return (
     <div className="card">
       <div className="flex items-center justify-between">
         <h5 className="text-lg">Expenses</h5>
 
         <div className="flex items-center gap-2">
-          <button className="card-btn flex items-center gap-1">
-            <Mail size={15} /> Email
+
+          {/* EMAIL BUTTON */}
+          <button
+            disabled={loading}
+            className="card-btn flex items-center gap-1"
+            onClick={onEmail}
+          >
+            {loading ? (
+              <>
+                <LoaderCircle className="w-4 h-4 animate-spin" />
+                Emailing...
+              </>
+            ) : (
+              <>
+                <Mail size={15} /> Email
+              </>
+            )}
           </button>
 
-          <button className="card-btn flex items-center gap-1">
-            <Download size={15} /> Download
+          {/* DOWNLOAD BUTTON */}
+          <button
+            disabled={loading}
+            className="card-btn flex items-center gap-1"
+            onClick={onDownload}
+          >
+            {loading ? (
+              <>
+                <LoaderCircle className="w-4 h-4 animate-spin" />
+                Downloading...
+              </>
+            ) : (
+              <>
+                <Download size={15} /> Download
+              </>
+            )}
           </button>
+
         </div>
       </div>
 

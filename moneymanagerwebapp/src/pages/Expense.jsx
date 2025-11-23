@@ -17,18 +17,14 @@ const Expense = () => {
   const [expenseData, setExpenseData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [openAddExpenseModal, setOpenAddExpenseModal] = useState(false);
-  const [openDeleteAlert, setOpenDeleteAlert] = useState({
-    show: false,
-    data: null,
-  });
+  const [openDeleteAlert, setOpenDeleteAlert] = useState({ show: false, data: null });
 
   const fetchExpenseDetails = async () => {
     try {
       const response = await axiosConfig.get(API_ENDPOINTS.GET_ALL_EXPENSES);
-      if (response.status === 200) {
-        setExpenseData(response.data || []);
-      }
+      if (response.status === 200) setExpenseData(response.data || []);
     } catch {
       toast.error("Failed to fetch expenses");
     }
@@ -47,8 +43,8 @@ const Expense = () => {
 
   const handleAddExpense = async (expense) => {
     try {
-      const response = await axiosConfig.post(API_ENDPOINTS.ADD_EXPENSE, expense);
-      if (response.status === 201) {
+      const resp = await axiosConfig.post(API_ENDPOINTS.ADD_EXPENSE, expense);
+      if (resp.status === 201) {
         toast.success("Expense added successfully");
         setOpenAddExpenseModal(false);
         fetchExpenseDetails();
@@ -65,7 +61,48 @@ const Expense = () => {
       toast.success("Expense deleted");
       fetchExpenseDetails();
     } catch {
-      toast.error("Failed to delete");
+      toast.error("Failed to delete expense");
+    }
+  };
+
+  // DOWNLOAD EXPENSE
+  const handleDownloadExpenseDetails = async () => {
+    try {
+      setActionLoading(true);
+
+      const response = await axiosConfig.get(API_ENDPOINTS.EXPENSE_EXCEL_DOWNLOAD, {
+        responseType: "blob",
+      });
+
+      const filename = "expense_details.xlsx";
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.setAttribute("download", filename);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Expense details downloaded successfully");
+    } catch (err) {
+      toast.error("Failed to download expense file");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // EMAIL EXPENSE
+  const handleEmailExpenseDetails = async () => {
+    try {
+      setActionLoading(true);
+      const res = await axiosConfig.get(API_ENDPOINTS.EMAIL_EXPENSE);
+      if (res.status === 200) toast.success("Expense details emailed successfully");
+    } catch {
+      toast.error("Failed to email expense details");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -87,6 +124,9 @@ const Expense = () => {
           <ExpenseList
             transactions={expenseData}
             onDelete={(id) => setOpenDeleteAlert({ show: true, data: id })}
+            onDownload={handleDownloadExpenseDetails}
+            onEmail={handleEmailExpenseDetails}
+            loading={actionLoading}
           />
 
           <Modal
@@ -94,10 +134,7 @@ const Expense = () => {
             onClose={() => setOpenAddExpenseModal(false)}
             title="Add Expense"
           >
-            <AddExpenseForm
-              onAddExpense={handleAddExpense}
-              categories={categories}
-            />
+            <AddExpenseForm onAddExpense={handleAddExpense} categories={categories} />
           </Modal>
 
           <Modal

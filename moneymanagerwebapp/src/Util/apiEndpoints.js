@@ -23,5 +23,7 @@ export const API_ENDPOINTS = {
     CATEGORY_BY_TYPE: (type) => `/category/type/${type}`,
     INCOME_EXCEL_DOWNLOAD: "/excel/download/income",
     EMAIL_INCOME: "/email/income-excel",
-    
+
+    EXPENSE_EXCEL_DOWNLOAD: "/excel/download/expense",
+    EMAIL_EXPENSE: "/email/expense-excel",
 };
