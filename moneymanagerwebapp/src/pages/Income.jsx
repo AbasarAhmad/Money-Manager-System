@@ -16,13 +16,14 @@ const Income = () => {
   const [incomeData, setIncomeData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false); // ✔ Spinner for email/download
   const [openAddIncomeModal, setOpenAddIncomeModal] = useState(false);
   const [openDeleteAlert, setOpenDeleteAlert] = useState({
     show: false,
     data: null,
   });
 
-  // Fetch income details
+  // Fetch income list
   const fetchIncomeDetails = async () => {
     if (loading) return;
     setLoading(true);
@@ -39,7 +40,7 @@ const Income = () => {
     }
   };
 
-  // Fetch categories for income
+  // Fetch categories
   const fetchIncomeCategories = async () => {
     try {
       const response = await axiosConfig.get(
@@ -56,7 +57,7 @@ const Income = () => {
     }
   };
 
-  // Add income
+  // Add Income
   const handleAddIncome = async (income) => {
     const { name, amount, date, icon, categoryId } = income;
 
@@ -102,8 +103,54 @@ const Income = () => {
     }
   };
 
+  // DOWNLOAD Excel
+  const handleDownloadIncomeDetails = async () => {
+    try {
+      setActionLoading(true);
 
-  
+      const response = await axiosConfig.get(
+        API_ENDPOINTS.INCOME_EXCEL_DOWNLOAD,
+        { responseType: "blob" }
+      );
+
+      const filename = "income_details.xlsx";
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Income details downloaded successfully");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to download income");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // EMAIL Excel
+  const handleEmailIncomeDetails = async () => {
+    try {
+      setActionLoading(true);
+
+      const response = await axiosConfig.get(API_ENDPOINTS.EMAIL_INCOME);
+
+      if (response.status === 200) {
+        toast.success("Income details emailed successfully");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to email income details"
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchIncomeDetails();
     fetchIncomeCategories();
@@ -122,6 +169,9 @@ const Income = () => {
           <IncomeList
             transactions={incomeData}
             onDelete={(id) => setOpenDeleteAlert({ show: true, data: id })}
+            onDownload={handleDownloadIncomeDetails}
+            onEmail={handleEmailIncomeDetails}
+            loading={actionLoading}   // ✔ spinner now works
           />
 
           {/* Add Income Modal */}
@@ -136,7 +186,7 @@ const Income = () => {
             />
           </Modal>
 
-          {/* Delete Income Modal */}
+          {/* Delete Modal */}
           <Modal
             isOpen={openDeleteAlert.show}
             onClose={() => setOpenDeleteAlert({ show: false, data: null })}

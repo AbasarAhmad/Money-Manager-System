@@ -21,4 +21,7 @@ export const API_ENDPOINTS = {
     DELETE_EXPENSE: (id) => `/expense/delete/${id}`,
 
     CATEGORY_BY_TYPE: (type) => `/category/type/${type}`,
+    INCOME_EXCEL_DOWNLOAD: "/excel/download/income",
+    EMAIL_INCOME: "/email/income-excel",
+    
 };
