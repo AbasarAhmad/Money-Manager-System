@@ -14,5 +14,11 @@ export const API_ENDPOINTS = {
     UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
     CATEGORY_BY_TYPE: (type) => `/category/type/${type}`,
     ADD_INCOME: "/income/add",
-    DELETE_INCOME: (id) => `/income/delete/${id}`
+    DELETE_INCOME: (id) => `/income/delete/${id}`,
+
+     GET_ALL_EXPENSES: "/expense/get",
+    ADD_EXPENSE: "/expense/add",
+    DELETE_EXPENSE: (id) => `/expense/delete/${id}`,
+
+    CATEGORY_BY_TYPE: (type) => `/category/type/${type}`,
 };

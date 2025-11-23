@@ -3,32 +3,30 @@ import { prepareIncomeLineChartData } from "../Util/util.js";
 import CustomLineChart from "./CustomLineChart.jsx";
 import { Plus } from "lucide-react";
 
-const IncomeOverview = ({ transactions, onAddIncome }) => {
+const ExpenseOverview = ({ transactions, onAddExpense }) => {
     const [chartData, setChartData] = useState([]);
 
     useEffect(() => {
         const result = prepareIncomeLineChartData(transactions || []);
-        console.log("Line chart processed data:", result);
         setChartData(result);
     }, [transactions]);
 
     return (
         <div className="card p-4">
-
             <div className="flex items-center justify-between">
                 <div>
-                    <h5 className="font-semibold text-lg">Income Overview</h5>
+                    <h5 className="font-semibold text-lg">Expense Overview</h5>
                     <p className="text-xs text-gray-500">
-                        Track daily incomes and analyze your earning pattern.
+                        Track daily expenses and analyze your spending pattern.
                     </p>
                 </div>
 
                 <button
-                    onClick={onAddIncome}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm transition"
+                    onClick={onAddExpense}
+                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-sm transition"
                 >
                     <Plus size={18} />
-                    Add Income
+                    Add Expense
                 </button>
             </div>
 
@@ -40,4 +38,4 @@ const IncomeOverview = ({ transactions, onAddIncome }) => {
     );
 };
 
-export default IncomeOverview;
+export default ExpenseOverview;

@@ -6,7 +6,6 @@ import { API_ENDPOINTS } from "../Util/apiEndpoints";
 import { toast } from "react-toastify";
 import IncomeList from "../components/IncomeList";
 import Modal from "../components/Modal";
-import { Plus } from "lucide-react";
 import AddIncomeForm from "../components/AddIncomeForm";
 import DeleteAlert from "../components/DeleteAlert";
 import IncomeOverview from "../components/IncomeOverview";
@@ -15,7 +14,7 @@ const Income = () => {
   useUser();
 
   const [incomeData, setIncomeData] = useState([]);
-  const [categories, setCategories] = useState([]);  // ✔ REQUIRED STATE
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openAddIncomeModal, setOpenAddIncomeModal] = useState(false);
   const [openDeleteAlert, setOpenDeleteAlert] = useState({
@@ -34,10 +33,7 @@ const Income = () => {
         setIncomeData(response.data || []);
       }
     } catch (error) {
-      console.log("Failed to fetch income details", error);
-      toast.error(
-        error.response?.data?.message || "Failed to fetch income details"
-      );
+      toast.error(error.response?.data?.message || "Failed to fetch incomes");
     } finally {
       setLoading(false);
     }
@@ -53,41 +49,27 @@ const Income = () => {
       if (response.status === 200) {
         setCategories(response.data);
       }
-
     } catch (error) {
-      console.log("Failed to fetch income categories: ", error);
       toast.error(
-        error.response?.data?.message ||
-        "Failed to fetch income for this category"
+        error.response?.data?.message || "Failed to fetch categories"
       );
     }
   };
 
-  //Save the categories for income
+  // Add income
   const handleAddIncome = async (income) => {
     const { name, amount, date, icon, categoryId } = income;
 
-    //validation
-    if (!name.trim()) {
-      toast.error("Please enter a name");
-    }
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      toast.error("Amount should be a valid number greater than 0");
-      return;
-    }
-    if (!date) {
-      toast.error("Please select a date");
-      return;
-    }
-    const today = new Date().toISOString().split('T')[0];
-    if (date > today) {
-      toast.error('Date cannot be in the future');
-      return;
-    }
-    if (!categoryId) {
-      toast.error("Please select a category ");
-      return;
-    }
+    if (!name.trim()) return toast.error("Please enter a name");
+    if (!amount || isNaN(amount) || Number(amount) <= 0)
+      return toast.error("Amount must be valid");
+    if (!date) return toast.error("Please select a date");
+
+    const today = new Date().toISOString().split("T")[0];
+    if (date > today) return toast.error("Future date not allowed");
+
+    if (!categoryId) return toast.error("Select Category");
+
     try {
       const response = await axiosConfig.post(API_ENDPOINTS.ADD_INCOME, {
         name,
@@ -95,59 +77,47 @@ const Income = () => {
         date,
         icon,
         categoryId,
-      })
+      });
+
       if (response.status === 201) {
         setOpenAddIncomeModal(false);
         toast.success("Income added successfully");
         fetchIncomeDetails();
         fetchIncomeCategories();
       }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add income");
     }
-    catch (error) {
-      console.log('Error adding income,', error);
-      toast.error(error.response?.data?.message || "Failed to adding income")
-    }
-  }
+  };
 
+  // Delete Income
+  const deleteIncome = async (id) => {
+    try {
+      await axiosConfig.delete(API_ENDPOINTS.DELETE_INCOME(id));
+      setOpenDeleteAlert({ show: false, data: null });
+      toast.success("Income deleted successfully");
+      fetchIncomeDetails();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete income");
+    }
+  };
+
+
+  
   useEffect(() => {
     fetchIncomeDetails();
     fetchIncomeCategories();
   }, []);
-
-    // delete income details
-    const deleteIncome= async (id) =>{
-      try{
-        await axiosConfig.delete(API_ENDPOINTS.DELETE_INCOME(id));
-        setOpenDeleteAlert({show:false, data: null})
-        toast.success("Income  deleted successfully");
-        fetchIncomeDetails();
-      }
-      catch(error){
-        console.log('Error deleting income', error);
-        toast.error(error.response?.data?.message || "Failed to delete income");
-      }
-      
-    }
-
-
-
 
   return (
     <Dashboard activeMenu="Income">
       <div className="my-5 mx-auto">
         <div className="grid grid-cols-1 gap-6">
 
-          <div>
-            <button
-              onClick={() => setOpenAddIncomeModal(true)}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm transition"
-            >
-              <Plus size={18} />
-              Add Income
-            </button>
-
-            <IncomeOverview transactions={incomeData}/>
-          </div>
+          <IncomeOverview
+            transactions={incomeData}
+            onAddIncome={() => setOpenAddIncomeModal(true)}
+          />
 
           <IncomeList
             transactions={incomeData}
@@ -161,7 +131,7 @@ const Income = () => {
             title="Add Income"
           >
             <AddIncomeForm
-              onAddIncome={(income) => handleAddIncome(income)}
+              onAddIncome={handleAddIncome}
               categories={categories}
             />
           </Modal>
@@ -172,12 +142,12 @@ const Income = () => {
             onClose={() => setOpenDeleteAlert({ show: false, data: null })}
             title="Delete Income"
           >
-            <DeleteAlert 
-            content="Are you sure want to delete this income details?"
-           onDelete={() => deleteIncome(openDeleteAlert.data)}
+            <DeleteAlert
+              content="Are you sure want to delete this income?"
+              onDelete={() => deleteIncome(openDeleteAlert.data)}
             />
-
           </Modal>
+
         </div>
       </div>
     </Dashboard>
@@ -185,5 +155,3 @@ const Income = () => {
 };
 
 export default Income;
-
-
