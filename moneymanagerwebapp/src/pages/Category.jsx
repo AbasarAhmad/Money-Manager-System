@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '../Util/apiEndpoints';
 import { toast } from 'react-toastify';
 import Modal from '../components/Modal';
 import AddCategoryform from '../components/AddCategoryform';
-
+import DeleteAlert from '../components/DeleteAlert'; // ensure you have this component
 
 const Category = () => {
   useUser();
@@ -18,6 +18,9 @@ const Category = () => {
   const [openAddCategoryModal, setOpenAddCategoryModal] = useState(false);
   const [openEditCategoryModal, setOpenEditCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // New: delete modal state
+  const [openDeleteAlert, setOpenDeleteAlert] = useState({ show: false, data: null });
 
   const fetchCategoryDetails = async () => {
     if (loading) return;
@@ -30,8 +33,8 @@ const Category = () => {
       }
     }
     catch (error) {
-      console.error('Something went wrong. Please try again.');
-      toast.error(error.message);
+      console.error('Something went wrong. Please try again.', error);
+      toast.error(error.response?.data?.message || error.message || "Failed to fetch categories");
     }
     finally {
       setLoading(false);
@@ -42,7 +45,7 @@ const Category = () => {
     fetchCategoryDetails()
   }, []);
 
-  const handleAddCategory= async(category)=>{
+  const handleAddCategory = async (category) => {
    const {name,type,icon}=category;
    if(!name.trim()){
     toast.error("Category Name is required");
@@ -50,11 +53,9 @@ const Category = () => {
    }
 
    // check if the category already exists
-
-  const isDuplicate = categoryData.some((category) => {
-  return category.name.toLowerCase() === name.trim().toLowerCase();
-});
-
+   const isDuplicate = categoryData.some((c) => {
+     return c.name.toLowerCase() === name.trim().toLowerCase();
+   });
 
    if(isDuplicate){
     toast.error("Category Name already exists");
@@ -76,10 +77,8 @@ const Category = () => {
 
  const handleEditCategory =(categoryToEdit)=>{
   setSelectedCategory(categoryToEdit);
-  setOpenEditCategoryModal(true); 
+  setOpenEditCategoryModal(true);
 }
-
-
 
   const handleUpdateCategory= async(updatedCategory)=>{
     const {id, name,type,icon}=updatedCategory;
@@ -88,29 +87,47 @@ const Category = () => {
       return;
     }
     if(!id){
-      toast.error("Category ID mussing for update");
+      toast.error("Category ID missing for update");
       return;
     }
     try{
       const response= await axiosConfig.put(API_ENDPOINTS.UPDATE_CATEGORY(id),{name,type,icon});
-      console.log("response is ::::"+response);
       setOpenEditCategoryModal(false);
       setSelectedCategory(null);
-      toast.success("category updated successfully");
+      toast.success("Category updated successfully");
       fetchCategoryDetails();
     }
     catch(error)
     {
-      console.error('Error updating category: ', error.response?.data?.message || error.message);
-      toast.error(error.response?.data?.message || "Failed to update category .");
+      console.error('Error updating category: ', error);
+      toast.error(error.response?.data?.message || error.message || "Failed to update category.");
     }
-
-
   }
 
+  // ----------------------------
+  // Delete category
+  // ----------------------------
+  const confirmDeleteCategory = (categoryId) => {
+    setOpenDeleteAlert({ show: true, data: categoryId });
+  };
 
-
-
+  const handleDeleteCategory = async () => {
+    const categoryId = openDeleteAlert.data;
+    if (!categoryId) {
+      toast.error("No category selected to delete");
+      return;
+    }
+    try {
+      const response = await axiosConfig.delete(API_ENDPOINTS.DELETE_CATEGORY(categoryId));
+      // backend should return 204 or 200
+      setOpenDeleteAlert({ show: false, data: null });
+      toast.success("Category deleted successfully");
+      fetchCategoryDetails();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error(error.response?.data?.message || error.message || "Failed to delete category");
+    }
+  };
 
   return (
     <div>
@@ -129,15 +146,18 @@ const Category = () => {
 
           </div>
 
-
           {/* Category list */}
-          <CategoryList categories={categoryData} onEditcategory={handleEditCategory} />
+          <CategoryList
+            categories={categoryData}
+            onEditcategory={handleEditCategory}
+            onDeleteCategory={(id) => confirmDeleteCategory(id)} // pass delete callback
+          />
 
           {/* Adding category modal */}
           <Modal
-          isOpen={openAddCategoryModal}
-          onClose={()=>setOpenAddCategoryModal(false)}
-          title="Add Category"
+            isOpen={openAddCategoryModal}
+            onClose={()=>setOpenAddCategoryModal(false)}
+            title="Add Category"
           >
             <AddCategoryform onAddCategory={handleAddCategory} />
           </Modal>
@@ -152,14 +172,25 @@ const Category = () => {
             title="Update Category"
           >
             <AddCategoryform
-            initialCategoryData={selectedCategory}
-            onAddCategory={handleUpdateCategory}
-            isEditing={true}
+              initialCategoryData={selectedCategory}
+              onAddCategory={handleUpdateCategory}
+              isEditing={true}
+            />
+          </Modal>
+
+          {/* Delete confirmation modal */}
+          <Modal
+            isOpen={openDeleteAlert.show}
+            onClose={() => setOpenDeleteAlert({ show: false, data: null })}
+            title="Delete Category"
+          >
+            <DeleteAlert
+              content="Are you sure you want to delete this category? This action cannot be undone."
+              onDelete={handleDeleteCategory}
             />
           </Modal>
         </div>
       </Dashboard>
-
     </div>
   )
 }

@@ -74,7 +74,19 @@ public class CategoryService {
 	  existingCategory=categoryRepository.save(existingCategory);
 	  return entityToDto(existingCategory);
   }
-    
+  public void deleteCategory(Long categoryId) {
+
+	    ProfileEntity profile = profileService.getCurrentProfile();
+
+	    // Check category exists & belongs to user
+	    CategoryEntity category = categoryRepository
+	            .findByIdAndProfileEntity_Id(categoryId, profile.getId())
+	            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+
+	    // Delete category
+	    categoryRepository.delete(category);
+	}
+
     
     // ==========================
     // Helper: Convert DTO to Entity

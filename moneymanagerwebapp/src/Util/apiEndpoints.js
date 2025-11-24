@@ -28,5 +28,6 @@ export const API_ENDPOINTS = {
     EMAIL_EXPENSE: "/email/expense-excel",
 
     APPLY_FILTERS: "/filter/filter",
-    GET_DASHBOARD: "/dashboard/get"
+    GET_DASHBOARD: "/dashboard/get",
+    DELETE_CATEGORY: (categoryId) => `/category/delete/${categoryId}`
 };
