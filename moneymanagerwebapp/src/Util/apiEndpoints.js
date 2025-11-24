@@ -27,5 +27,6 @@ export const API_ENDPOINTS = {
     EXPENSE_EXCEL_DOWNLOAD: "/excel/download/expense",
     EMAIL_EXPENSE: "/email/expense-excel",
 
-    APPLY_FILTERS: "/filter/filter"
+    APPLY_FILTERS: "/filter/filter",
+    GET_DASHBOARD: "/dashboard/get"
 };
